@@ -31,4 +31,9 @@ public class Wallet {
         this.balance = balance;
         this.averageExchangeRate = averageExchangeRate;
     }
+
+    public void updateBalanceAndRate(BigDecimal newBalance, BigDecimal newAverageExchangeRate) {
+        this.balance = newBalance;
+        this.averageExchangeRate = newAverageExchangeRate;
+    }
 }
