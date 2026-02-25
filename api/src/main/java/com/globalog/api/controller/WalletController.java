@@ -1,0 +1,27 @@
+package com.globalog.api.controller;
+
+import com.globalog.api.domain.Transaction;
+import com.globalog.api.dto.TransactionRequest;
+import com.globalog.api.service.WalletService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("api/wallet")
+@RequiredArgsConstructor
+public class WalletController {
+    private final WalletService walletService;
+
+    @PostMapping("/{walletId}/transactions")
+    public ResponseEntity<Transaction> createTransaction(@PathVariable Long walletId, @RequestBody TransactionRequest request) {
+        Transaction transaction = walletService.processTransaction(
+                walletId,
+                request.getType(),
+                request.getAmount(),
+                request.getExchangeRate()
+        );
+
+        return ResponseEntity.ok(transaction);
+    }
+}
