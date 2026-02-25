@@ -3,6 +3,7 @@ package com.globalog.api.service;
 import com.globalog.api.domain.Transaction;
 import com.globalog.api.domain.Wallet;
 import com.globalog.api.dto.TransactionRequest;
+import com.globalog.api.dto.WalletCreateRequest;
 import com.globalog.api.repository.TransactionRepository;
 import com.globalog.api.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,8 @@ public class WalletService {
                 .amount(amount)
                 .exchangeRate(currentRate)
                 .description(request.getDescription())
+                .currency(request.getTransactionCurrency())
+                .transactionDate(request.getTransactionDate())
                 .build();
 
         return transactionRepository.save(transaction);
@@ -72,6 +75,23 @@ public class WalletService {
     public Wallet getWallet(Long walletId) {
         return walletRepository.findById(walletId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 지갑을 찾을 수 없습니다: " + walletId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Wallet> getAllWallets() {
+        return walletRepository.findAll();
+    }
+
+    @Transactional
+    public Wallet createWallet(WalletCreateRequest request) {
+        Wallet newWallet = Wallet.builder()
+                .name(request.getName())
+                .currency(request.getCurrency())
+                .balance(BigDecimal.ZERO)
+                .averageExchangeRate(BigDecimal.ONE)
+                .build();
+
+        return walletRepository.save(newWallet);
     }
 
     @Transactional(readOnly = true)

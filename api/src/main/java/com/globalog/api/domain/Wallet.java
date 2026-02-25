@@ -16,6 +16,9 @@ public class Wallet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 100)
+    private String name;
+
     @Column(nullable = false, length = 3)
     private String currency;
 
@@ -26,7 +29,8 @@ public class Wallet {
     private BigDecimal averageExchangeRate;
 
     @Builder
-    public Wallet(String currency, BigDecimal balance, BigDecimal averageExchangeRate) {
+    public Wallet(String name, String currency, BigDecimal balance, BigDecimal averageExchangeRate) {
+        this.name = name;
         this.currency = currency;
         this.balance = balance;
         this.averageExchangeRate = averageExchangeRate;

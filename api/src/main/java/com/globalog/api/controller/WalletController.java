@@ -3,6 +3,7 @@ package com.globalog.api.controller;
 import com.globalog.api.domain.Transaction;
 import com.globalog.api.domain.Wallet;
 import com.globalog.api.dto.TransactionRequest;
+import com.globalog.api.dto.WalletCreateRequest;
 import com.globalog.api.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,5 +36,17 @@ public class WalletController {
     public ResponseEntity<List<Transaction>> getTransactions(@PathVariable Long walletId) {
         List<Transaction> transactions = walletService.getTransactions(walletId);
         return ResponseEntity.ok(transactions);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Wallet>> getAllWallets() {
+        List<Wallet> wallets = walletService.getAllWallets();
+        return ResponseEntity.ok(wallets);
+    }
+
+    @PostMapping
+    public ResponseEntity<Wallet> createWallet(@RequestBody WalletCreateRequest request) {
+        Wallet wallet = walletService.createWallet(request);
+        return ResponseEntity.ok(wallet);
     }
 }
