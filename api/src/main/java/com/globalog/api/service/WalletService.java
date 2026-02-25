@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -60,5 +61,10 @@ public class WalletService {
     public Wallet getWallet(Long walletId) {
         return walletRepository.findById(walletId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 지갑을 찾을 수 없습니다: " + walletId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Transaction> getTransactions(Long walletId) {
+        return transactionRepository.findByWalletIdOrderByCreatedAtDesc(walletId);
     }
 }

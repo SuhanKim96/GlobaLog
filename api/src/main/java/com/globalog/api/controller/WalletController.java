@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/wallets")
 @RequiredArgsConstructor
@@ -31,5 +33,11 @@ public class WalletController {
         Wallet wallet = walletService.getWallet(walletId);
 
         return ResponseEntity.ok(wallet);
+    }
+
+    @GetMapping("/{walletId}/transactions")
+    public ResponseEntity<List<Transaction>> getTransactions(@PathVariable Long walletId) {
+        List<Transaction> transactions = walletService.getTransactions(walletId);
+        return ResponseEntity.ok(transactions);
     }
 }
