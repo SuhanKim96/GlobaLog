@@ -18,12 +18,8 @@ public class WalletController {
 
     @PostMapping("/{walletId}/transactions")
     public ResponseEntity<Transaction> createTransaction(@PathVariable Long walletId, @RequestBody TransactionRequest request) {
-        Transaction transaction = walletService.processTransaction(
-                walletId,
-                request.getType(),
-                request.getAmount(),
-                request.getExchangeRate()
-        );
+        request.setWalletId(walletId);
+        Transaction transaction = walletService.processTransaction(request);
 
         return ResponseEntity.ok(transaction);
     }
