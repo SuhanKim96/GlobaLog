@@ -2,6 +2,7 @@ package com.globalog.api.service;
 
 import com.globalog.api.domain.Transaction;
 import com.globalog.api.domain.Wallet;
+import com.globalog.api.dto.TransactionRequest;
 import com.globalog.api.repository.TransactionRepository;
 import com.globalog.api.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,40 +19,50 @@ public class WalletService {
 
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final ExchangeRateService exchangeRateService;
 
     @Transactional
-    public Transaction processTransaction(Long walletId, Transaction.TransactionType type, BigDecimal amount, BigDecimal exchangeRate) {
+    public Transaction processTransaction(TransactionRequest request) {
+        Wallet wallet = walletRepository.findById(request.getWalletId())
+                .orElseThrow(() -> new IllegalArgumentException("지갑을 찾을 수 없습니다: " + request.getWalletId()));
 
-        Wallet wallet = walletRepository.findById(walletId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 지갑을 찾을 수 없습니다: " + walletId));
+        BigDecimal currentRate = request.getExchangeRate();
+        if (currentRate == null) {
+            String fromCurrency = (request.getTransactionCurrency() != null) ? request.getTransactionCurrency() : "USD";
+            String toCurrency = wallet.getCurrency();
 
-        BigDecimal newBalance = wallet.getBalance();
-        BigDecimal newAverageRate = wallet.getAverageExchangeRate();
+            currentRate = exchangeRateService.getLatestRate(fromCurrency, toCurrency);
+        }
 
-        if (type == Transaction.TransactionType.DEPOSIT) {
-            BigDecimal oldTotalCost = wallet.getBalance().multiply(wallet.getAverageExchangeRate());
-            BigDecimal newDepositCost = amount.multiply(exchangeRate);
+        BigDecimal amount = request.getAmount();
+        BigDecimal newBalance;
+        BigDecimal newAvgRate = wallet.getAverageExchangeRate();
 
+        if (request.getType() == Transaction.TransactionType.DEPOSIT) {
+            BigDecimal totalValue = wallet.getBalance().multiply(wallet.getAverageExchangeRate())
+                    .add(amount.multiply(currentRate));
             newBalance = wallet.getBalance().add(amount);
 
             if (newBalance.compareTo(BigDecimal.ZERO) > 0) {
-                newAverageRate = oldTotalCost.add(newDepositCost)
-                        .divide(newBalance, 2, RoundingMode.HALF_UP); // 소수점 2자리에서 반올림
+                newAvgRate = totalValue.divide(newBalance, 4, RoundingMode.HALF_UP);
             }
-        } else if (type == Transaction.TransactionType.WITHDRAWAL) {
+        } else if (request.getType() == Transaction.TransactionType.WITHDRAWAL) {
             newBalance = wallet.getBalance().subtract(amount);
             if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
-                throw new IllegalArgumentException("계좌 잔액이 부족합니다.");
+                throw new IllegalStateException("잔액이 부족하여 출금할 수 없습니다.");
             }
+        } else {
+            throw new IllegalArgumentException("알 수 없는 거래 유형입니다.");
         }
 
-        wallet.updateBalanceAndRate(newBalance, newAverageRate);
+        wallet.updateBalanceAndRate(newBalance, newAvgRate);
 
         Transaction transaction = Transaction.builder()
                 .wallet(wallet)
-                .type(type)
+                .type(request.getType())
                 .amount(amount)
-                .exchangeRate(type == Transaction.TransactionType.DEPOSIT ? exchangeRate : BigDecimal.ZERO)
+                .exchangeRate(currentRate)
+                .description(request.getDescription())
                 .build();
 
         return transactionRepository.save(transaction);
