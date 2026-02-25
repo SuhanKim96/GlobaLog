@@ -55,4 +55,10 @@ public class WalletService {
 
         return transactionRepository.save(transaction);
     }
+
+    @Transactional(readOnly = true)
+    public Wallet getWallet(Long walletId) {
+        return walletRepository.findById(walletId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 지갑을 찾을 수 없습니다: " + walletId));
+    }
 }
