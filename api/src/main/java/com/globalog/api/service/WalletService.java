@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -25,30 +26,33 @@ public class WalletService {
     @Transactional
     public Transaction processTransaction(TransactionRequest request) {
         Wallet wallet = walletRepository.findById(request.getWalletId())
-                .orElseThrow(() -> new IllegalArgumentException("지갑을 찾을 수 없습니다: " + request.getWalletId()));
+                .orElseThrow(() -> new IllegalArgumentException("지갑을 찾을 수 없습니다."));
+
+        String fromCurrency = (request.getTransactionCurrency() != null) ? request.getTransactionCurrency() : "USD";
+        String toCurrency = wallet.getCurrency();
 
         BigDecimal currentRate = request.getExchangeRate();
         if (currentRate == null) {
-            String fromCurrency = (request.getTransactionCurrency() != null) ? request.getTransactionCurrency() : "USD";
-            String toCurrency = wallet.getCurrency();
-
             currentRate = exchangeRateService.getLatestRate(fromCurrency, toCurrency);
         }
 
         BigDecimal amount = request.getAmount();
+        BigDecimal convertedAmount = amount.multiply(currentRate);
+
         BigDecimal newBalance;
-        BigDecimal newAvgRate = wallet.getAverageExchangeRate();
+        BigDecimal currentAvgRate = wallet.getAverageExchangeRate() != null ? wallet.getAverageExchangeRate() : BigDecimal.ZERO;
+        BigDecimal newAvgRate = currentAvgRate;
 
         if (request.getType() == Transaction.TransactionType.DEPOSIT) {
-            BigDecimal totalValue = wallet.getBalance().multiply(wallet.getAverageExchangeRate())
-                    .add(amount.multiply(currentRate));
-            newBalance = wallet.getBalance().add(amount);
+            newBalance = wallet.getBalance().add(convertedAmount);
 
             if (newBalance.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal totalValue = wallet.getBalance().multiply(currentAvgRate)
+                        .add(amount.multiply(currentRate));
                 newAvgRate = totalValue.divide(newBalance, 4, RoundingMode.HALF_UP);
             }
         } else if (request.getType() == Transaction.TransactionType.WITHDRAWAL) {
-            newBalance = wallet.getBalance().subtract(amount);
+            newBalance = wallet.getBalance().subtract(convertedAmount);
             if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
                 throw new IllegalStateException("잔액이 부족하여 출금할 수 없습니다.");
             }
@@ -57,6 +61,7 @@ public class WalletService {
         }
 
         wallet.updateBalanceAndRate(newBalance, newAvgRate);
+        walletRepository.save(wallet);
 
         Transaction transaction = Transaction.builder()
                 .wallet(wallet)
@@ -64,8 +69,8 @@ public class WalletService {
                 .amount(amount)
                 .exchangeRate(currentRate)
                 .description(request.getDescription())
-                .currency(request.getTransactionCurrency())
-                .transactionDate(request.getTransactionDate())
+                .currency(fromCurrency)
+                .transactionDate(request.getTransactionDate() != null ? request.getTransactionDate() : LocalDateTime.now())
                 .build();
 
         return transactionRepository.save(transaction);
