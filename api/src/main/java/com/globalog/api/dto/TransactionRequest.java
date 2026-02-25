@@ -6,9 +6,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class TransactionRequest {
     private Long walletId;
     private Transaction.TransactionType type;
@@ -16,4 +18,5 @@ public class TransactionRequest {
     private String description;
     private BigDecimal exchangeRate;
     private String transactionCurrency;
+    private LocalDateTime transactionDate;
 }

@@ -34,6 +34,12 @@ public class Transaction {
     @Column(length = 255)
     private String description;
 
+    @Column(length = 10)
+    private String currency;
+
+    @Column(nullable = false)
+    private LocalDateTime transactionDate;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -42,12 +48,14 @@ public class Transaction {
     }
 
     @Builder
-    public Transaction(Wallet wallet, TransactionType type, BigDecimal amount, BigDecimal exchangeRate, String description) {
+    public Transaction(Wallet wallet, TransactionType type, BigDecimal amount, BigDecimal exchangeRate, String description, String currency, LocalDateTime transactionDate) {
         this.wallet = wallet;
         this.type = type;
         this.amount = amount;
         this.exchangeRate = exchangeRate;
         this.createdAt = LocalDateTime.now();
         this.description = description;
+        this.currency = currency;
+        this.transactionDate = transactionDate;
     }
 }
