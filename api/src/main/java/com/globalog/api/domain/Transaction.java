@@ -31,19 +31,23 @@ public class Transaction {
     @Column(precision = 15, scale = 2)
     private BigDecimal exchangeRate;
 
+    @Column(length = 255)
+    private String description;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    public enum TransactionType {
+        DEPOSIT, WITHDRAWAL
+    }
+
     @Builder
-    public Transaction(Wallet wallet, TransactionType type, BigDecimal amount, BigDecimal exchangeRate) {
+    public Transaction(Wallet wallet, TransactionType type, BigDecimal amount, BigDecimal exchangeRate, String description) {
         this.wallet = wallet;
         this.type = type;
         this.amount = amount;
         this.exchangeRate = exchangeRate;
         this.createdAt = LocalDateTime.now();
-    }
-
-    public enum TransactionType {
-        DEPOSIT, WITHDRAWAL
+        this.description = description;
     }
 }
