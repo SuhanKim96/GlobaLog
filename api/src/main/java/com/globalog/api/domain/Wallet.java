@@ -25,7 +25,7 @@ public class Wallet {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal balance;
 
-    @Column(nullable = false, precision = 15, scale = 2)
+    @Column(nullable = false, precision = 15, scale = 8)
     private BigDecimal averageExchangeRate;
 
     @Builder

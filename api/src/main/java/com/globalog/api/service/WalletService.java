@@ -51,8 +51,9 @@ public class WalletService {
 
             if (newBalance.compareTo(BigDecimal.ZERO) > 0) {
                 BigDecimal totalValue = wallet.getBalance().multiply(currentAvgRate)
-                        .add(amount.multiply(currentRate));
-                newAvgRate = totalValue.divide(newBalance, 4, RoundingMode.HALF_UP);
+                        .add(convertedAmount.multiply(currentRate));
+
+                newAvgRate = totalValue.divide(newBalance, 8, RoundingMode.HALF_UP);
             }
         } else if (request.getType() == Transaction.TransactionType.WITHDRAWAL) {
             newBalance = wallet.getBalance().subtract(convertedAmount);
