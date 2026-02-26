@@ -1,54 +1,51 @@
 import { useState } from 'react';
 
 function ExpenseForm({ onAddExpense }) {
-    const [type, setType] = useState('expense');
-    const [title, setTitle] = useState('');
+    const [type, setType] = useState('WITHDRAWAL');
+    const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
-    const [currency, setCurrency] = useState('SGD');
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [currency, setCurrency] = useState('USD');
+    const [transactionDate, setTransactionDate] = useState(new Date().toISOString().split('T')[0]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!title || !amount) return alert('모든 필드를 입력해주세요!');
+        if (!description || !amount || !transactionDate) return alert('모든 필드를 입력해주세요!');
 
         onAddExpense({
-            id: Date.now(),
-            type,
-            title,
+            type: type,
             amount: parseFloat(amount),
-            currency,
-            date
+            description: description,
+            transactionCurrency: currency,
+            transactionDate: `${transactionDate}T00:00:00`
         });
 
-        setTitle('');
+        setDescription('');
         setAmount('');
     };
 
     return (
         <form onSubmit={handleSubmit} className="expense-form">
             <div className="type-toggle">
-                <button
-                    type="button"
-                    className={type === 'expense' ? 'active expense-btn' : ''}
-                    onClick={() => setType('expense')}
-                >지출</button>
-                <button
-                    type="button"
-                    className={type === 'income' ? 'active income-btn' : ''}
-                    onClick={() => setType('income')}
-                >입금</button>
+                <button type="button" className={type === 'WITHDRAWAL' ? 'active expense-btn' : ''} onClick={() => setType('WITHDRAWAL')}>지출</button>
+                <button type="button" className={type === 'DEPOSIT' ? 'active income-btn' : ''} onClick={() => setType('DEPOSIT')}>수입/입금</button>
             </div>
 
             <div className="input-group">
-                <input type="text" placeholder="항목 (예: 용돈, 커피)" value={title} onChange={(e) => setTitle(e.target.value)} />
+                <input
+                    type="date"
+                    value={transactionDate}
+                    onChange={(e) => setTransactionDate(e.target.value)}
+                    required
+                />
+                <input type="text" placeholder="항목 (예: 식비, 월급)" value={description} onChange={(e) => setDescription(e.target.value)} />
                 <input type="number" placeholder="금액" value={amount} onChange={(e) => setAmount(e.target.value)} />
                 <select value={currency} onChange={(e) => setCurrency(e.target.value)}>
+                    <option value="USD">USD ($)</option>
                     <option value="SGD">SGD ($)</option>
                     <option value="KRW">KRW (₩)</option>
-                    <option value="USD">USD ($)</option>
                     <option value="EUR">EUR (€)</option>
+                    <option value="HKD">HKD ($)</option>
                 </select>
-                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
                 <button type="submit">추가</button>
             </div>
         </form>
