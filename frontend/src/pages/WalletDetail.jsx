@@ -100,23 +100,49 @@ function WalletDetail() {
 
             <section className="list-section">
                 <h3>최근 거래 내역</h3>
-                {transactions.length === 0 ? (
-                    <p>아직 거래 내역이 없습니다.</p>
-                ) : (
-                    <ul>
-                        {transactions.map((tx) => (
-                            <li key={tx.id}>
-                                <span>{new Date(tx.transactionDate || tx.createdAt).toLocaleDateString()}</span>
-                                <strong>
-                                    {tx.type === 'DEPOSIT' ? '입금: ' : '지출: '}{tx.description}
-                                </strong>
-                                <span style={{ color: tx.type === 'DEPOSIT' ? '#2563eb' : '#111827', fontWeight: 'bold' }}>
-                                  {tx.type === 'DEPOSIT' ? '+' : '-'}{tx.amount.toLocaleString()}{tx.currency}
-                                </span>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {transactions.length === 0 ? (
+                        <li style={{ textAlign: 'center', color: '#6b7280', padding: '20px' }}>
+                            아직 거래 내역이 없습니다.
+                        </li>
+                    ) : (
+                        transactions.map((tx) => (
+                            <li
+                                key={tx.id}
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: '16px',
+                                    marginBottom: '10px',
+                                    backgroundColor: '#ffffff',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                }}
+                            >
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+                        {tx.transactionDate ? tx.transactionDate.split('T')[0] : ''}
+                    </span>
+                                    <span style={{ fontSize: '1rem', color: '#374151', fontWeight: '500' }}>
+                        {tx.type === 'DEPOSIT' ? '입금' : '지출'}
+                                        {tx.description ? ` - ${tx.description}` : ''}
+                    </span>
+                                </div>
+
+                                <div style={{
+                                    color: tx.type === 'DEPOSIT' ? '#2563eb' : '#ef4444',
+                                    fontWeight: 'bold',
+                                    fontSize: '1.1rem'
+                                }}>
+                                    {tx.type === 'DEPOSIT' ? '+' : '-'}
+                                    {tx.amount.toLocaleString()} {tx.currency}
+                                </div>
                             </li>
-                        ))}
-                    </ul>
-                )}
+                        ))
+                    )}
+                </ul>
             </section>
         </div>
     );
