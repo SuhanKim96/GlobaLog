@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Map;
 
 @Service
@@ -12,17 +13,26 @@ import java.util.Map;
 public class ExchangeRateService {
     private final RestTemplate restTemplate;
 
-    public BigDecimal getLatestRate(String from, String to) {
-        String url = String.format("https://api.frankfurter.dev/v1/latest?base=%s&symbols=%s", from, to);
+    public BigDecimal getExchangeRate(String from, String to, LocalDate date) {
+        if (from.equals(to)) {
+            return BigDecimal.ONE;
+        }
+
+        String datePath = (date != null) ? date.toString() : "latest";
+        String url = String.format("https://api.frankfurter.dev/v1/%s?base=%s&symbols=%s", datePath, from, to);
 
         try {
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
-            Map<String, Object> rates = (Map<String, Object>) response.get("rates");
-
-            Number rate = (Number) rates.get(to);
-            return BigDecimal.valueOf(rate.doubleValue());
+            if (response != null && response.containsKey("rates")) {
+                Map<String, Double> rates = (Map<String, Double>) response.get("rates");
+                if (rates.containsKey(to)) {
+                    return BigDecimal.valueOf(rates.get(to));
+                }
+            }
         } catch (Exception e) {
             throw new RuntimeException("환율 정보를 가져오지 못했습니다.");
         }
+
+        return BigDecimal.ONE;
     }
 }

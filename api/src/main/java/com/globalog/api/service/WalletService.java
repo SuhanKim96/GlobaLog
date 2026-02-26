@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -31,9 +32,11 @@ public class WalletService {
         String fromCurrency = (request.getTransactionCurrency() != null) ? request.getTransactionCurrency() : "USD";
         String toCurrency = wallet.getCurrency();
 
+        LocalDate targetDate = request.getTransactionDate() != null ? request.getTransactionDate().toLocalDate() : LocalDate.now();
+
         BigDecimal currentRate = request.getExchangeRate();
         if (currentRate == null) {
-            currentRate = exchangeRateService.getLatestRate(fromCurrency, toCurrency);
+            currentRate = exchangeRateService.getExchangeRate(fromCurrency, toCurrency, targetDate);
         }
 
         BigDecimal amount = request.getAmount();
