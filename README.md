@@ -47,3 +47,22 @@ _In English_: [README_EN.md](README_EN.md)
 ---
 
 ## 📺 Demo Video
+
+---
+
+## 🚀 로컬 실행 방법 (How to Run Locally)
+
+### 1. 백엔드 (Backend)
+* `application.properties`에서 본인의 PostgreSQL 계정 정보를 설정합니다.
+* 프로젝트 루트에서 아래 명령어를 실행하거나 IDE에서 `ApiApplication`을 구동합니다.
+```bash
+./gradlew bootRun
+```
+
+### 2. 프론트엔드 (Frontend)
+* `frontend` 폴더로 이동하여 의존성 설치 후 개발 서버를 실행합니다.
+```bash
+cd frontend
+npm install
+npm run dev
+```

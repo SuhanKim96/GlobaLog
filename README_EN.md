@@ -46,3 +46,22 @@ GlobaLog is a web service I developed based on my personal needs as an internati
 ---
 
 ## 📺 Demo Video
+
+---
+
+## 🚀 How to Run Locally
+
+### 1. Backend
+* Configure your PostgreSQL credentials in `application.properties`.
+* Run the following command in the project root or start `ApiApplication` via IDE.
+```bash
+./gradlew bootRun
+```
+
+### 2. Frontend
+* Navigate to the `frontend` directory, install dependencies, and start the server.
+```bash
+cd frontend
+npm install
+npm run dev
+```
