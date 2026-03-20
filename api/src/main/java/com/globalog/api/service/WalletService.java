@@ -34,32 +34,42 @@ public class WalletService {
 
         LocalDate targetDate = request.getTransactionDate() != null ? request.getTransactionDate().toLocalDate() : LocalDate.now();
 
-        BigDecimal currentRate = request.getExchangeRate();
-        if (currentRate == null) {
-            currentRate = exchangeRateService.getExchangeRate(fromCurrency, toCurrency, targetDate);
+        // 1. 거래 통화 -> 지갑 통화 환율 (잔액 계산용)
+        BigDecimal rateFromToWallet = request.getExchangeRate();
+        if (rateFromToWallet == null) {
+            rateFromToWallet = exchangeRateService.getExchangeRate(fromCurrency, toCurrency, targetDate);
         }
 
+        // 2. 거래 통화 -> KRW 환율 (원화 가치 및 평균 환율 계산용)
+        BigDecimal rateFromToKRW = exchangeRateService.getExchangeRate(fromCurrency, "KRW", targetDate);
+
         BigDecimal amount = request.getAmount();
-        BigDecimal convertedAmount = amount.multiply(currentRate);
+        BigDecimal convertedAmount = amount.multiply(rateFromToWallet); // 지갑 통화 기준 입금액
+        BigDecimal amountInKRW = amount.multiply(rateFromToKRW);      // KRW 기준 가치
 
         BigDecimal newBalance;
-        BigDecimal currentAvgRate = wallet.getAverageExchangeRate() != null ? wallet.getAverageExchangeRate() : BigDecimal.ZERO;
-        BigDecimal newAvgRate = currentAvgRate;
+        BigDecimal newAvgRate = wallet.getAverageExchangeRate() != null ? wallet.getAverageExchangeRate() : BigDecimal.ONE;
 
         if (request.getType() == Transaction.TransactionType.DEPOSIT) {
             newBalance = wallet.getBalance().add(convertedAmount);
 
             if (newBalance.compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal totalValue = wallet.getBalance().multiply(currentAvgRate)
-                        .add(convertedAmount.multiply(currentRate));
+                // 기존 총 원화 가치 계산 (기존 잔액 / 기존 평균환율)
+                BigDecimal currentTotalKRW = BigDecimal.ZERO;
+                if (wallet.getBalance().compareTo(BigDecimal.ZERO) > 0 && wallet.getAverageExchangeRate().compareTo(BigDecimal.ZERO) > 0) {
+                    currentTotalKRW = wallet.getBalance().divide(wallet.getAverageExchangeRate(), 18, RoundingMode.HALF_UP);
+                }
 
-                newAvgRate = totalValue.divide(newBalance, 8, RoundingMode.HALF_UP);
+                BigDecimal newTotalKRW = currentTotalKRW.add(amountInKRW);
+                // 새로운 평균 환율 = 새로운 잔액 / 새로운 총 원화 가치
+                newAvgRate = newBalance.divide(newTotalKRW, 8, RoundingMode.HALF_UP);
             }
         } else if (request.getType() == Transaction.TransactionType.WITHDRAWAL) {
             newBalance = wallet.getBalance().subtract(convertedAmount);
             if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
                 throw new IllegalStateException("잔액이 부족하여 출금할 수 없습니다.");
             }
+            // 출금 시에는 평균 환율이 변하지 않음 (평균 단가 개념)
         } else {
             throw new IllegalArgumentException("알 수 없는 거래 유형입니다.");
         }
@@ -71,7 +81,7 @@ public class WalletService {
                 .wallet(wallet)
                 .type(request.getType())
                 .amount(amount)
-                .exchangeRate(currentRate)
+                .exchangeRate(rateFromToWallet)
                 .description(request.getDescription())
                 .currency(fromCurrency)
                 .transactionDate(request.getTransactionDate() != null ? request.getTransactionDate() : LocalDateTime.now())
