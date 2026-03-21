@@ -58,14 +58,14 @@ function Dashboard() {
         }
     };
 
-    if (loading) return <div className="app-container" style={{textAlign: 'center', marginTop: '4rem', color: 'var(--gray-500)'}}>데이터를 불러오는 중입니다...</div>;
+    if (loading) return <div className="app-container" style={{textAlign: 'center', marginTop: '4rem', color: 'var(--text-tertiary)', fontWeight: 600}}>데이터를 동기화 중입니다...</div>;
 
     return (
         <>
             <div className="dashboard-header">
                 <h2>내 통장 목록</h2>
                 <button className="btn-primary" onClick={() => setShowModal(true)}>
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                     새 통장 추가
                 </button>
             </div>
@@ -75,30 +75,34 @@ function Dashboard() {
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
                         <h3>새 통장 만들기</h3>
                         <form onSubmit={handleCreateWallet}>
-                            <div className="input-group">
+                            <div className="input-wrapper" style={{marginBottom: '1.25rem'}}>
+                                <label>통장 이름</label>
                                 <input
                                     type="text"
                                     className="input-field"
-                                    placeholder="통장 이름 (예: 미국 여행 경비)"
+                                    placeholder="예: 미국 여행 경비"
                                     value={newWalletName}
                                     onChange={(e) => setNewWalletName(e.target.value)}
                                     autoFocus
                                 />
+                            </div>
+                            <div className="input-wrapper" style={{marginBottom: '1.5rem'}}>
+                                <label>기준 통화</label>
                                 <select
                                     className="input-field"
                                     value={newWalletCurrency}
                                     onChange={(e) => setNewWalletCurrency(e.target.value)}
                                 >
-                                    <option value="USD">기준 통화: USD ($)</option>
-                                    <option value="KRW">기준 통화: KRW (₩)</option>
-                                    <option value="SGD">기준 통화: SGD ($)</option>
-                                    <option value="EUR">기준 통화: EUR (€)</option>
-                                    <option value="HKD">기준 통화: HKD ($)</option>
+                                    <option value="USD">USD - US Dollar ($)</option>
+                                    <option value="KRW">KRW - Korean Won (₩)</option>
+                                    <option value="SGD">SGD - Singapore Dollar ($)</option>
+                                    <option value="EUR">EUR - Euro (€)</option>
+                                    <option value="HKD">HKD - Hong Kong Dollar ($)</option>
                                 </select>
                             </div>
                             <div className="modal-actions">
                                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>취소</button>
-                                <button type="submit" className="btn-primary">만들기</button>
+                                <button type="submit" className="btn-primary">통장 생성</button>
                             </div>
                         </form>
                     </div>
@@ -107,8 +111,8 @@ function Dashboard() {
 
             {wallets.length === 0 ? (
                 <div className="empty-state">
-                    <svg width="64" height="64" style={{margin: '0 auto 1rem', color: 'var(--gray-400)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                    <h4>아직 만들어진 통장이 없습니다.</h4>
+                    <svg width="72" height="72" style={{margin: '0 auto 1.5rem', color: 'var(--text-tertiary)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                    <h4>아직 생성된 통장이 없습니다.</h4>
                     <p>우측 상단의 버튼을 눌러 첫 통장을 추가해 보세요!</p>
                     <button className="btn-primary" onClick={() => setShowModal(true)}>
                         첫 통장 만들기
@@ -123,10 +127,13 @@ function Dashboard() {
                                 <span className="wallet-currency-badge">{wallet.currency}</span>
                             </div>
                             <div className="wallet-balance">
-                                <span className="amount">
-                                    {wallet.balance ? wallet.balance.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 0}
-                                </span>
-                                <span className="currency">{wallet.currency}</span>
+                                <span className="label">Current Balance</span>
+                                <div className="amount-wrapper">
+                                    <span className="amount">
+                                        {wallet.balance ? wallet.balance.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '0.00'}
+                                    </span>
+                                    <span className="currency">{wallet.currency}</span>
+                                </div>
                             </div>
                         </div>
                     ))}
