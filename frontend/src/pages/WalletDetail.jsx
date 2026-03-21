@@ -64,12 +64,38 @@ function WalletDetail() {
         }
     };
 
+    const handleDeleteWallet = async () => {
+        if (!window.confirm("정말로 이 통장과 모든 거래 내역을 삭제하시겠습니까?")) return;
+        
+        try {
+            const response = await fetch(`/api/wallets/${id}`, {
+                method: 'DELETE',
+            });
+            if (response.ok) {
+                alert("통장이 삭제되었습니다.");
+                navigate('/');
+            } else {
+                alert("삭제에 실패했습니다.");
+            }
+        } catch (error) {
+            console.error("삭제 중 서버 통신 에러:", error);
+            alert("삭제 중 오류가 발생했습니다.");
+        }
+    };
+
     if (loading) return <div className="app-container">데이터를 불러오는 중입니다...</div>;
     if (!walletInfo) return <div className="app-container">지갑 정보를 찾을 수 없습니다.</div>;
 
     return (
         <div className="wallet-detail-container">
-            <button className="back-btn" onClick={() => navigate(-1)}>← 목록으로 돌아가기</button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <button className="back-btn" onClick={() => navigate(-1)}>← 목록으로 돌아가기</button>
+                <button 
+                    onClick={handleDeleteWallet} 
+                    style={{ backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                    통장 삭제
+                </button>
+            </div>
 
             <div className="wallet-header">
                 <h2>{walletInfo.name || `통장 #${walletInfo.id}`}</h2>

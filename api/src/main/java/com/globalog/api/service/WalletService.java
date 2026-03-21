@@ -113,6 +113,12 @@ public class WalletService {
         return walletRepository.save(newWallet);
     }
 
+    @Transactional
+    public void deleteWallet(Long walletId) {
+        transactionRepository.deleteByWalletId(walletId);
+        walletRepository.deleteById(walletId);
+    }
+
     @Transactional(readOnly = true)
     public List<Transaction> getTransactions(Long walletId) {
         return transactionRepository.findByWalletIdOrderByCreatedAtDesc(walletId);
