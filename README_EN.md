@@ -1,67 +1,111 @@
-# 🌍 GlobaLog (Borderless Expense Tracker)
-> **A Precise Multi-Currency Ledger & Asset Tracker**
-> Born from the real-world challenges of an international student, GlobaLog is a service that tracks assets with precision, accounting for fluctuating exchange rates.
+_한국어_: [README.md](README.md)
+
+# GlobaLog
+
+A multi-currency asset management and expense tracking platform. Tracks the precise base-currency value and weighted average exchange rate of foreign currency holdings, accounting for exchange rate fluctuations over time.
 
 ---
 
-## 📝 Summary
-GlobaLog is a web service I developed based on my personal needs as an international student. Managing assets across various currencies—such as Korean Won (KRW), Singapore Dollars (SGD), and US Dollars (USD)—revealed the limitations of existing expense tracker apps. Specifically, the high volatility of exchange rates made it difficult to determine the exact base-currency value of my assets every time I exchanged money. To solve this, I implemented a specialized multi-currency ledger that automatically fetches historical and real-time exchange rates and accurately calculates the "Weighted Average Exchange Rate" for every deposit.
+## Summary
+
+This project originated from the real-world challenge of managing assets across multiple currencies — KRW, SGD, USD — as an international student. Existing expense apps either applied a fixed exchange rate at the time of input or lacked the ability to calculate a running average rate across multiple transactions at different rates. To address this, GlobaLog integrates a historical and real-time exchange rate API (keyed to the transaction date) and applies a weighted average formula to track asset value with 8-decimal precision.
 
 ---
 
-## ⭐️ Key Functions
-* **Multi-Currency Wallet Creation**: Create and manage wallets in various base currencies such as KRW, SGD, USD, etc.
-* **Historical & Real-time Rate Integration**: Integrated with the Frankfurter API to automatically fetch the exact exchange rate corresponding to the transaction date (past or present).
-* **Automated Weighted Average Rate Calculation**: Even with multiple deposits at different rates, the system uses a weighted average formula to calculate the "final applied rate" with 8-decimal precision and stores it in the database.
-* **Intuitive Asset Conversion UI**: Visualizes not only the current foreign currency balance but also the "Total Invested Base Currency (e.g., KRW)" and the "Average Applied Rate" at a glance.
-* **Date-Specific Transaction Logging**: Seamlessly record past expenses or income by applying the accurate exchange rate from the specific date of the transaction.
+## Key Features
+
+- **Multi-Currency Wallets**: Create and manage independent wallets per currency (KRW, USD, SGD, EUR, HKD)
+- **Historical and Real-time Rate Fetching**: Automatically retrieves the exchange rate for the exact transaction date via the Frankfurter API
+- **Weighted Average Rate Calculation**: Recalculates the average cost-basis rate on every deposit using the weighted average formula, stored at 8-decimal precision
+- **Portfolio Summary Dashboard**: Aggregates total wallet count, tracked currencies, and total balance per currency in a single view
+- **Backdated Transaction Support**: Records past transactions using the actual exchange rate from that date
+- **Asset Conversion Visualization**: Displays foreign currency balance, KRW-equivalent total, and average applied rate simultaneously
 
 ---
 
-## 🛠 Tech Stack
-* **Backend**: Java, Spring Boot, Spring Data JPA, Hibernate, PostgreSQL, Spring Security
-* **Frontend**: React (Vite), JavaScript, CSS, HTML5 *(Note: Frontend work was assisted by AI)*
-* **External API**: Frankfurter Exchange Rates API
+## Tech Stack
+
+| Layer | Stack |
+|---|---|
+| Backend | Java 17, Spring Boot 4.0.1, Spring Data JPA, Hibernate, Spring Security, Spring Validation |
+| Database | PostgreSQL |
+| Frontend | React 19 (Vite), React Router DOM, CSS Custom Properties |
+| External API | Frankfurter Exchange Rates API |
+| Build | Gradle |
 
 ---
 
-## ⚙️ Architecture
-* **RESTful API-based Client-Server Architecture** (Spring Boot Backend & React SPA Frontend)
+## Architecture
+
+```
+Client (React SPA)
+    |
+    | HTTP (Vite proxy → localhost:8080)
+    |
+Spring Boot Application
+    ├── Controller Layer   — 6 REST endpoints, @Valid request validation
+    ├── Service Layer      — Business logic, @Transactional management
+    ├── Repository Layer   — Spring Data JPA, custom derived queries
+    └── Domain Layer       — JPA entities (Wallet, Transaction)
+    |
+PostgreSQL
+```
+
+**Key design decisions:**
+- `@Transactional(readOnly = true)` on all read-path methods — disables Hibernate dirty-checking to reduce overhead
+- Two-step `deleteWallet()` (transactions → wallet) wrapped in a single `@Transactional` to prevent orphaned records
+- `BigDecimal` used throughout — intermediate calculations at `scale=18`, final persistence at `scale=8` with `RoundingMode.HALF_UP`
+- `@RestControllerAdvice` for global exception handling — maps `IllegalArgumentException → 400`, `RuntimeException → 500`
+- Bean Validation (`@NotNull`, `@Positive`, `@Pattern`) on DTOs to reject invalid requests before reaching the service layer
+- RestTemplate configured with 3s connection timeout and 5s read timeout
 
 ---
 
-## 🤚🏻 Roles & Responsibilities
-* **Personal Project**: Planning, Backend Development, and Database Design.
-* **Frontend Development**: UI/UX implementation through pair programming with an AI assistant.
+## Roles
+
+Personal project — solely responsible for planning, backend development, and database design. Frontend UI was implemented through AI pair programming.
 
 ---
 
-## 🤔 Key Learnings
-* **External API Integration**: Learned how to integrate the Frankfurter Exchange Rates API using Spring Boot's `RestTemplate` and handle dynamic parameters (dates, currencies).
-* **Business Logic Implementation**: Integrated the mathematical "Weighted Average" formula into the backend logic to handle transactions occurring at different exchange rates.
-* **Database Precision**: Experienced the importance of controlling decimal precision (`precision`, `scale`) in JPA entity design to prevent micro-errors in financial data.
-* **Security & Communication**: Resolved communication issues between Frontend and Backend by configuring CORS (Cross-Origin Resource Sharing) and disabling CSRF via Spring Security.
-* **AI Collaboration**: Learned how to rapidly build a Frontend UI and efficiently bind API response data to the display through collaboration with AI.
+## Key Learnings
+
+- **Financial logic correctness**: Integrated the weighted average formula into business logic and controlled decimal precision with BigDecimal `precision`/`scale` to eliminate floating-point errors
+- **Transaction atomicity**: Understood the rollback behavior of `@Transactional` and the importance of data integrity across multi-step database operations
+- **Defensive API integration**: Identified and fixed an indefinite thread-blocking issue caused by missing RestTemplate timeouts, reinforcing the importance of defensive code for external dependencies
+- **API design maturity**: Designed a global exception handler and DTO validation layer to intercept malformed requests before they reach business logic
+- **Spring Security**: Understood the filter chain execution order and centralized CORS policy into a single `SecurityConfig`
 
 ---
 
-## 📺 Demo Video
+## How to Run Locally
 
----
+### Prerequisites
 
-## 🚀 How to Run Locally
+- Java 17+
+- PostgreSQL
+- Node.js 18+
 
 ### 1. Backend
-* Configure your PostgreSQL credentials in `application.properties`.
-* Run the following command in the project root or start `ApiApplication` via IDE.
+
+Configure your PostgreSQL credentials in `api/src/main/resources/application.properties`.
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/globalog
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+```
+
 ```bash
+cd api
 ./gradlew bootRun
 ```
 
 ### 2. Frontend
-* Navigate to the `frontend` directory, install dependencies, and start the server.
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+
+The frontend runs at `http://localhost:5173` and communicates with the backend at `localhost:8080` via the Vite proxy.

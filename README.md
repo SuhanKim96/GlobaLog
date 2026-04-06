@@ -1,68 +1,111 @@
 _In English_: [README_EN.md](README_EN.md)
 
-# 🌍 GlobaLog (Borderless Expense Tracker)
-> **국경 없는 다통화 가계부 및 자산 트래커** > 유학생의 실생활 고민에서 시작된, 환율 변동까지 반영하는 정밀한 자산 관리 서비스입니다.
+# GlobaLog
+
+다통화 자산 관리 및 정밀 가계부 플랫폼. 환율 변동을 반영하여 외화 자산의 정확한 원화 가치와 가중 평균 환율(평단가)을 추적합니다.
 
 ---
 
-## 📝 Summary
-제가 유학생으로 지내며 실제로 필요하다고 느껴서 제작하게 된 웹 서비스입니다. 한국 원화(KRW)와 유학 중인 국가의 통화(SGD 등), 그리고 달러(USD)까지 여러 통화가 섞인 자산을 관리하는 것은 기존 가계부 앱들로는 한계가 있었습니다. 특히 요즘 급변하는 환율, 그리고 환전을 할 때마다 달라지는 '환율' 때문에 내 자산의 정확한 원화 가치를 파악하기 어려웠습니다. 이를 해결하기 위해 입력한 날짜의 과거 환율과 실시간 환율을 자동으로 가져오고, 입금 시마다 '평균 적용 환율(평단가)'을 정확히 계산해 주는 다통화 특화 가계부를 직접 구현하게 되었습니다.
+## Summary
+
+유학생으로서 KRW, SGD, USD 등 여러 통화를 동시에 관리하며 느낀 불편함에서 시작된 프로젝트입니다. 기존 가계부 앱들은 입력 시점의 고정 환율만 사용하거나 환전 시 발생하는 평균 환율 계산에 한계가 있었습니다. 이를 해결하기 위해 거래 날짜 기준의 과거/실시간 환율 API를 연동하고, 가중 평균 환율(Weighted Average) 공식을 적용하여 소수점 8자리까지 정밀하게 자산 가치를 추적할 수 있는 다통화 특화 가계부를 구현했습니다.
 
 ---
 
-## ⭐️ Key Function
-* **다통화 지갑 생성**: KRW, SGD, USD 등 사용자가 원하는 기준 통화로 지갑(Wallet)을 생성 및 관리
-* **과거 및 실시간 환율 연동**: Frankfurter API를 연동하여, 거래 날짜(과거/현재)에 맞는 정확한 환율을 백엔드에서 자동으로 가져와 금액을 변환
-* **가중 평균 환율(평단가) 자동 계산**: 서로 다른 환율로 여러 번 입금하더라도, 가중 평균 공식을 통해 '최종 적용 환율'을 소수점 8자리 정밀도로 정확하게 계산하여 데이터베이스에 저장
-* **직관적인 자산 변환 UI**: 외화로 가진 현재 잔액뿐만 아니라, 내가 실제 투입한 '원화(KRW) 환산 총액'과 '평균 적용 환율'을 한눈에 볼 수 있도록 시각화
-* **날짜 지정 입출금 기록**: 과거의 지출/수입 내역도 당시의 환율을 적용하여 정확하게 추가 가능
+## Key Features
+
+- **다통화 지갑**: 통화별 독립 지갑 생성 및 실시간 잔액 관리 (KRW, USD, SGD, EUR, HKD)
+- **과거/실시간 환율 자동 연동**: Frankfurter API를 통해 거래 날짜에 해당하는 정확한 환율을 백엔드에서 자동 조회
+- **가중 평균 환율 자동 계산**: 입금 시마다 가중 평균 공식으로 평단가를 소수점 8자리 정밀도로 갱신하여 DB에 저장
+- **포트폴리오 요약 대시보드**: 보유 지갑 수, 추적 통화 목록, 통화별 총 잔액을 한 화면에 집계
+- **과거 내역 소급 적용**: 특정 날짜의 거래 기록 시 해당일 환율 데이터를 자동 적용
+- **자산 변환 시각화**: 외화 잔액, 원화 환산 총액, 평균 적용 환율을 동시에 표시
 
 ---
 
-## 🛠 Tech Stack
-* **Backend**: Java, Spring Boot, Spring Data JPA, Hibernate, PostgreSQL, Spring Security
-* **Frontend**: React (Vite), JavaScript, CSS, HTML5 *(Note: Frontend work was assisted with AI)*
-* **External API**: Frankfurter Exchange Rates API
+## Tech Stack
+
+| Layer | Stack |
+|---|---|
+| Backend | Java 17, Spring Boot 4.0.1, Spring Data JPA, Hibernate, Spring Security, Spring Validation |
+| Database | PostgreSQL |
+| Frontend | React 19 (Vite), React Router DOM, CSS Custom Properties |
+| External API | Frankfurter Exchange Rates API |
+| Build | Gradle |
 
 ---
 
-## ⚙️ Architecture
-* RESTful API 기반의 Client-Server Architecture (Spring Boot 백엔드 & React SPA 프론트엔드)
+## Architecture
+
+```
+Client (React SPA)
+    |
+    | HTTP (Vite proxy → localhost:8080)
+    |
+Spring Boot Application
+    ├── Controller Layer   — 6 REST endpoints, @Valid request validation
+    ├── Service Layer      — Business logic, @Transactional management
+    ├── Repository Layer   — Spring Data JPA, custom derived queries
+    └── Domain Layer       — JPA entities (Wallet, Transaction)
+    |
+PostgreSQL
+```
+
+**주요 설계 결정:**
+- 읽기 메서드에 `@Transactional(readOnly = true)` 적용 → Hibernate dirty-checking 비활성화로 오버헤드 절감
+- `deleteWallet()` 2단계 삭제(거래 내역 → 지갑)를 단일 트랜잭션으로 묶어 고아 데이터 방지
+- `BigDecimal` 전면 도입 — 중간 계산 시 `scale=18`, 최종 저장 시 `scale=8`, `RoundingMode.HALF_UP`
+- `@RestControllerAdvice`로 전역 예외 처리 — `IllegalArgumentException → 400`, `RuntimeException → 500`
+- Bean Validation(`@NotNull`, `@Positive`, `@Pattern`)으로 DTO 입력값 사전 차단
+- RestTemplate 커넥션 3초 / 읽기 5초 타임아웃 설정
 
 ---
 
-## 🤚🏻 Part
-* **개인 프로젝트** (기획, 백엔드 개발, 데이터베이스 설계)
-* **프론트엔드 개발** (AI 어시스턴트와의 페어 프로그래밍을 통한 UI/UX 구현)
+## Roles
+
+개인 프로젝트 — 기획, 백엔드 개발, 데이터베이스 설계를 전담하였으며, 프론트엔드 UI는 AI 페어 프로그래밍을 활용했습니다.
 
 ---
 
-## 🤔 Learned
-* 외부 REST API(Frankfurter 환율 API)를 Spring Boot RestTemplate을 활용해 연동하고, 동적 파라미터(날짜, 통화)를 처리하는 방법 습득
-* 서로 다른 시점의 환율을 적용하기 위한 '가중 평균(Weighted Average)' 수학 공식을 비즈니스 로직에 통합하는 과정 경험
-* JPA 엔티티 설계 시, 미세한 환율 오차를 방지하기 위한 소수점 정밀도 제어(precision, scale)의 중요성 체감
-* Spring Security를 통한 CSRF 비활성화 및 CORS(Cross-Origin Resource Sharing) 설정으로 프론트엔드-백엔드 간의 통신 이슈 해결
-* AI와의 협업을 통해 프론트엔드 UI를 신속하게 구현하고, API 응답 데이터를 화면에 효율적으로 바인딩하는 방법 학습
+## Key Learnings
+
+- **금융 로직의 정합성**: 가중 평균 공식을 비즈니스 로직에 통합하고 BigDecimal precision/scale로 소수점 오차를 제어하는 방법 습득
+- **트랜잭션 원자성**: 다단계 DB 작업에서 `@Transactional`의 롤백 동작과 데이터 무결성의 중요성 체감
+- **외부 API 방어적 코드 작성**: 타임아웃 미설정 시 스레드 무한 대기 문제를 직접 발견하고 수정하며 외부 의존성에 대한 방어 코드의 중요성 인식
+- **API 설계 성숙도**: 전역 예외 핸들러와 DTO 검증으로 잘못된 요청이 서비스 레이어에 도달하기 전에 차단하는 구조 설계
+- **Spring Security**: 필터 체인의 동작 원리를 이해하고 CORS 정책을 SecurityConfig에 중앙화
 
 ---
 
-## 📺 Demo Video
+## How to Run Locally
 
----
+### Prerequisites
 
-## 🚀 로컬 실행 방법 (How to Run Locally)
+- Java 17+
+- PostgreSQL
+- Node.js 18+
 
-### 1. 백엔드 (Backend)
-* `application.properties`에서 본인의 PostgreSQL 계정 정보를 설정합니다.
-* 프로젝트 루트에서 아래 명령어를 실행하거나 IDE에서 `ApiApplication`을 구동합니다.
+### 1. Backend
+
+`api/src/main/resources/application.properties`에서 PostgreSQL 접속 정보를 설정합니다.
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/globalog
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+```
+
 ```bash
+cd api
 ./gradlew bootRun
 ```
 
-### 2. 프론트엔드 (Frontend)
-* `frontend` 폴더로 이동하여 의존성 설치 후 개발 서버를 실행합니다.
+### 2. Frontend
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+
+프론트엔드는 `http://localhost:5173`에서 실행되며, Vite 프록시를 통해 백엔드(`localhost:8080`)와 통신합니다.
