@@ -5,6 +5,7 @@ import com.globalog.api.domain.Wallet;
 import com.globalog.api.dto.TransactionRequest;
 import com.globalog.api.dto.WalletCreateRequest;
 import com.globalog.api.service.WalletService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class WalletController {
     private final WalletService walletService;
 
     @PostMapping("/{walletId}/transactions")
-    public ResponseEntity<Transaction> createTransaction(@PathVariable Long walletId, @RequestBody TransactionRequest request) {
+    public ResponseEntity<Transaction> createTransaction(@PathVariable Long walletId, @Valid @RequestBody TransactionRequest request) {
         request.setWalletId(walletId);
         Transaction transaction = walletService.processTransaction(request);
 
@@ -45,7 +46,7 @@ public class WalletController {
     }
 
     @PostMapping
-    public ResponseEntity<Wallet> createWallet(@RequestBody WalletCreateRequest request) {
+    public ResponseEntity<Wallet> createWallet(@Valid @RequestBody WalletCreateRequest request) {
         Wallet wallet = walletService.createWallet(request);
         return ResponseEntity.ok(wallet);
     }
