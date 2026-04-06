@@ -29,10 +29,11 @@ public class ExchangeRateService {
                     return BigDecimal.valueOf(rates.get(to));
                 }
             }
+            throw new RuntimeException("Exchange rate not found for: " + from + " -> " + to + " on " + datePath);
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("환율 정보를 가져오지 못했습니다.");
+            throw new RuntimeException("Failed to fetch exchange rate for: " + from + " -> " + to, e);
         }
-
-        return BigDecimal.ONE;
     }
 }
