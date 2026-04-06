@@ -16,11 +16,11 @@ import java.time.LocalDateTime;
 public class TransactionRequest {
     private Long walletId;
 
-    @NotNull(message = "Transaction type is required")
+    @NotNull(message = "거래 유형을 선택해주세요.")
     private Transaction.TransactionType type;
 
-    @NotNull(message = "Amount is required")
-    @Positive(message = "Amount must be greater than zero")
+    @NotNull(message = "금액을 입력해주세요.")
+    @Positive(message = "금액은 0보다 커야 합니다.")
     private BigDecimal amount;
 
     private String description;

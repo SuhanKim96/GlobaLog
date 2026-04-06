@@ -12,11 +12,11 @@ import lombok.Setter;
 @NoArgsConstructor
 public class WalletCreateRequest {
 
-    @NotBlank(message = "Wallet name is required")
-    @Size(max = 100, message = "Wallet name must not exceed 100 characters")
+    @NotBlank(message = "통장 이름을 입력해주세요.")
+    @Size(max = 100, message = "통장 이름은 100자를 초과할 수 없습니다.")
     private String name;
 
-    @NotBlank(message = "Currency code is required")
-    @Pattern(regexp = "^[A-Z]{3}$", message = "Currency must be a 3-letter ISO 4217 code (e.g. USD, SGD)")
+    @NotBlank(message = "통화 코드를 입력해주세요.")
+    @Pattern(regexp = "^[A-Z]{3}$", message = "통화 코드는 3자리 ISO 4217 형식이어야 합니다. (예: USD, SGD)")
     private String currency;
 }
