@@ -1,40 +1,61 @@
 /* ==========================================================================
-   APP CONTAINER & HEADER
+   NAVBAR
    ========================================================================== */
-   .app-container {
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-default);
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    transition: opacity 0.2s;
+}
+
+.navbar-brand:hover {
+    opacity: 0.75;
+}
+
+.navbar-brand svg {
+    color: var(--brand-accent);
+    flex-shrink: 0;
+}
+
+.navbar-tagline {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+@media (max-width: 600px) {
+    .navbar-tagline { display: none; }
+    .navbar { padding: 0 1.25rem; }
+}
+
+/* ==========================================================================
+   APP CONTAINER
+   ========================================================================== */
+  .app-container {
     max-width: 960px;
     margin: 0 auto;
-    padding: 3rem 1.5rem;
+    padding: 2.5rem 1.5rem;
     animation: fadeIn 0.4s ease-out;
-  }
-  
-  header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 4rem;
-    position: relative;
-  }
-  
-  header h1 {
-    font-size: 2.75rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  
-  header h1 svg {
-    color: var(--brand-accent);
-  }
-  
-  header p {
-    color: var(--text-secondary);
-    font-size: 1.125rem;
-    font-weight: 500;
-    letter-spacing: -0.01em;
   }
   
   /* ==========================================================================
@@ -124,6 +145,71 @@
     font-size: 1.75rem;
   }
   
+  /* ==========================================================================
+     PORTFOLIO SUMMARY BAR
+     ========================================================================== */
+  .portfolio-summary {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.75rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+  }
+
+  .summary-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .summary-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+  }
+
+  .summary-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .summary-currencies {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .summary-currency-tag {
+    background: var(--border-light);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-full);
+    padding: 0.15rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  .summary-divider {
+    width: 1px;
+    height: 36px;
+    background: var(--border-default);
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 600px) {
+    .portfolio-summary { gap: 1.25rem; padding: 1rem 1.25rem; }
+    .summary-divider { display: none; }
+  }
+
   .wallets-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -607,9 +693,68 @@
     color: var(--text-primary);
     margin-bottom: 0.5rem;
   }
-  
+
   .empty-state p {
     color: var(--text-secondary);
     margin-bottom: 2rem;
     font-size: 1.05rem;
   }
+
+/* ==========================================================================
+   LOADING SPINNER
+   ========================================================================== */
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 320px;
+}
+
+.spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--border-default);
+    border-top-color: var(--brand-accent);
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   INLINE FORM ERROR
+   ========================================================================== */
+.form-error {
+    color: var(--danger-color);
+    background-color: var(--danger-bg);
+    border: 1px solid rgba(225, 29, 72, 0.2);
+    border-radius: var(--radius-md);
+    padding: 0.65rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+}
+
+/* ==========================================================================
+   TRANSACTION SUB-INFO (exchange rate line)
+   ========================================================================== */
+.tx-sub {
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+.tx-amount-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+}
+
+.tx-converted {
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}

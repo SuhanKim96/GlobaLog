@@ -58,7 +58,20 @@ function Dashboard() {
         }
     };
 
-    if (loading) return <div className="app-container" style={{textAlign: 'center', marginTop: '4rem', color: 'var(--text-tertiary)', fontWeight: 600}}>데이터를 동기화 중입니다...</div>;
+    if (loading) return (
+        <div className="loading-container">
+            <div className="spinner"></div>
+        </div>
+    );
+
+    const currencies = [...new Set(wallets.map(w => w.currency))];
+    const totalsByCurrency = wallets.reduce((groups, w) => {
+        groups[w.currency] = (groups[w.currency] || 0) + (w.balance || 0);
+        return groups;
+    }, {});
+    const totalAssetsLabel = Object.entries(totalsByCurrency)
+        .map(([cur, total]) => `${total.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${cur}`)
+        .join(' · ');
 
     return (
         <>
@@ -105,6 +118,29 @@ function Dashboard() {
                                 <button type="submit" className="btn-primary">통장 생성</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {wallets.length > 0 && (
+                <div className="portfolio-summary">
+                    <div className="summary-stat">
+                        <span className="summary-label">Wallets</span>
+                        <span className="summary-value">{wallets.length}</span>
+                    </div>
+                    <div className="summary-divider" />
+                    <div className="summary-stat">
+                        <span className="summary-label">Currencies</span>
+                        <div className="summary-currencies">
+                            {currencies.map(c => (
+                                <span key={c} className="summary-currency-tag">{c}</span>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="summary-divider" />
+                    <div className="summary-stat">
+                        <span className="summary-label">Total Assets</span>
+                        <span className="summary-value">{totalAssetsLabel}</span>
                     </div>
                 </div>
             )}

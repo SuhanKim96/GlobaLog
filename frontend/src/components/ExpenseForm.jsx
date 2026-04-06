@@ -6,15 +6,24 @@ function ExpenseForm({ onAddExpense }) {
     const [amount, setAmount] = useState('');
     const [currency, setCurrency] = useState('USD');
     const [transactionDate, setTransactionDate] = useState(new Date().toISOString().split('T')[0]);
+    const [error, setError] = useState('');
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!description || !amount || !transactionDate) return alert('모든 필드를 입력해주세요!');
+        if (!description || !amount || !transactionDate) {
+            setError('모든 필드를 입력해주세요.');
+            return;
+        }
+        if (Number(amount) <= 0) {
+            setError('금액은 0보다 커야 합니다.');
+            return;
+        }
+        setError('');
 
         onAddExpense({
-            type: type,
+            type,
             amount: parseFloat(amount),
-            description: description,
+            description,
             transactionCurrency: currency,
             transactionDate: `${transactionDate}T00:00:00`
         });
@@ -27,21 +36,23 @@ function ExpenseForm({ onAddExpense }) {
         <div className="expense-form-card">
             <form onSubmit={handleSubmit}>
                 <div className="type-toggle">
-                    <button 
-                        type="button" 
-                        className={type === 'WITHDRAWAL' ? 'active expense-btn' : ''} 
+                    <button
+                        type="button"
+                        className={type === 'WITHDRAWAL' ? 'active expense-btn' : ''}
                         onClick={() => setType('WITHDRAWAL')}
                     >
                         지출 (Expense)
                     </button>
-                    <button 
-                        type="button" 
-                        className={type === 'DEPOSIT' ? 'active income-btn' : ''} 
+                    <button
+                        type="button"
+                        className={type === 'DEPOSIT' ? 'active income-btn' : ''}
                         onClick={() => setType('DEPOSIT')}
                     >
                         수입 (Income)
                     </button>
                 </div>
+
+                {error && <p className="form-error">{error}</p>}
 
                 <div className="form-grid">
                     <div className="input-wrapper">
@@ -54,34 +65,36 @@ function ExpenseForm({ onAddExpense }) {
                             required
                         />
                     </div>
-                    
+
                     <div className="input-wrapper">
                         <label>내역</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             className="input-field"
-                            placeholder="예: 스타벅스, 월급" 
-                            value={description} 
-                            onChange={(e) => setDescription(e.target.value)} 
+                            placeholder="예: 스타벅스, 월급"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
                         />
                     </div>
-                    
+
                     <div className="input-wrapper">
                         <label>금액</label>
-                        <input 
-                            type="number" 
+                        <input
+                            type="number"
                             className="input-field"
-                            placeholder="0.00" 
-                            value={amount} 
-                            onChange={(e) => setAmount(e.target.value)} 
+                            placeholder="0.00"
+                            min="0"
+                            step="any"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
                         />
                     </div>
-                    
+
                     <div className="input-wrapper">
                         <label>통화</label>
-                        <select 
+                        <select
                             className="input-field"
-                            value={currency} 
+                            value={currency}
                             onChange={(e) => setCurrency(e.target.value)}
                         >
                             <option value="USD">USD ($)</option>
@@ -91,8 +104,8 @@ function ExpenseForm({ onAddExpense }) {
                             <option value="HKD">HKD ($)</option>
                         </select>
                     </div>
-                    
-                    <button type="submit" className="btn-primary" style={{height: '3rem', padding: '0 2rem'}}>
+
+                    <button type="submit" className="btn-primary" style={{ height: '3rem', padding: '0 2rem' }}>
                         추가
                     </button>
                 </div>
