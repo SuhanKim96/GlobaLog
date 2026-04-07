@@ -1,6 +1,9 @@
 package com.globalog.api.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,6 +16,11 @@ import java.util.Map;
 public class ExchangeRateService {
     private final RestTemplate restTemplate;
 
+    @Retryable(
+        retryFor = RuntimeException.class,
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 500, multiplier = 2)
+    )
     public BigDecimal getExchangeRate(String from, String to, LocalDate date) {
         if (from.equals(to)) {
             return BigDecimal.ONE;
@@ -35,5 +43,12 @@ public class ExchangeRateService {
         } catch (Exception e) {
             throw new RuntimeException(from + " -> " + to + " 환율 정보를 가져오지 못했습니다.", e);
         }
+    }
+
+    @Recover
+    public BigDecimal recover(RuntimeException e, String from, String to, LocalDate date) {
+        throw new RuntimeException(
+            "환율 API 3회 재시도 후 실패 (" + from + " -> " + to + "): " + e.getMessage(), e
+        );
     }
 }
